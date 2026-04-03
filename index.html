@@ -118,7 +118,7 @@
     .roomList{
       border: 1px solid var(--border);
       border-radius: 14px;
-      overflow: hidden;
+      overflow-y: auto;
       height: 470px;
       background:#fff;
     }
@@ -154,20 +154,42 @@
       background: #fff7f7;
       border-color: #fecaca;
     }
+    .tierHeader{
+      font-size: 11px;
+      font-weight: 800;
+      letter-spacing: 0.07em;
+      text-transform: uppercase;
+      color: var(--muted);
+      padding: 6px 8px 4px 8px;
+      margin-top: 4px;
+    }
     .alertCard{
       background:#fff;
       border:1px solid #fee2e2;
+      border-left: 4px solid var(--danger);
       border-radius: 14px;
       padding: 12px;
-      margin: 10px 6px;
+      margin: 6px 6px;
       display:flex;
       flex-direction:column;
       gap: 8px;
-      box-shadow: 0 8px 18px rgba(2,6,23,.05);
+      box-shadow: 0 4px 12px rgba(239,68,68,.10);
+    }
+    .alertCardWarn{
+      background:#fff;
+      border:1px solid #fde68a;
+      border-left: 4px solid var(--warning);
+      border-radius: 12px;
+      padding: 9px 12px;
+      margin: 4px 6px;
+      display:flex;
+      justify-content:space-between;
+      align-items:center;
+      gap: 10px;
     }
     .alertTop{ display:flex; justify-content:space-between; gap:10px; align-items:flex-start; }
-    .alertTitle{ font-weight: 800; }
-    .alertSub{ color: var(--muted); font-size: 12px; }
+    .alertTitle{ font-weight: 800; font-size: 15px; }
+    .alertSub{ color: var(--muted); font-size: 12px; margin-top: 2px; }
     .alertBtns{ display:flex; gap:10px; flex-wrap:wrap; margin-top: 4px; }
     .btnSmall{
       border:0;
@@ -180,12 +202,23 @@
     .btnAck{ background: var(--danger); color:#fff; }
     .btnCheck{ background: var(--warning); color:#fff; }
     .btnView{ background: #e2e8f0; color:#0f172a; }
+    .filterToggle{
+      font-size: 11px;
+      font-weight: 700;
+      border: 1px solid var(--border);
+      background: #f8fafc;
+      color: var(--muted);
+      padding: 4px 10px;
+      border-radius: 999px;
+      cursor: pointer;
+    }
+    .filterToggle.active{ background: #eef2ff; border-color: #c7d2fe; color: #1e3a8a; }
 
     /* Timeline */
     .timeline{
       border: 1px solid var(--border);
       border-radius: 14px;
-      overflow:hidden;
+      overflow-y: auto;
       height: 520px;
       background:#fff;
     }
@@ -440,13 +473,20 @@
       // Filters
       const [query, setQuery] = useState("");
       const [statusFilter, setStatusFilter] = useState("ALL");
+      const [timelineFilter, setTimelineFilter] = useState("WARN_PLUS");
+      const STATUS_RANK = { CRITICAL:0, WARNING:1, OFFLINE:2, NORMAL:3 };
       const filteredRooms = useMemo(() => {
         const q = query.trim().toLowerCase();
-        return rooms.filter(r => {
-          const matchQ = !q || r.label.toLowerCase().includes(q) || r.id.includes(q);
-          const matchS = statusFilter === "ALL" || r.status === statusFilter;
-          return matchQ && matchS;
-        });
+        return rooms
+          .filter(r => {
+            const matchQ = !q || r.label.toLowerCase().includes(q) || r.id.includes(q);
+            const matchS = statusFilter === "ALL" || r.status === statusFilter;
+            return matchQ && matchS;
+          })
+          .sort((a, b) =>
+            (STATUS_RANK[a.status] ?? 4) - (STATUS_RANK[b.status] ?? 4) ||
+            a.id.localeCompare(b.id)
+          );
       }, [rooms, query, statusFilter]);
 
       // Virtual list (simple windowing)
@@ -529,7 +569,7 @@
             }
             return next;
           });
-        }, 1800);
+        }, 5000);
         return () => clearInterval(t);
       }, []);
 
@@ -635,35 +675,67 @@
 
             // Alerts
             React.createElement("div", { className:"panel alertPanel" },
-              React.createElement("h2", null, "⚠ Active Fall Alerts"),
-              activeAlerts.length === 0
-                ? React.createElement("div", { className:"tiny", style:{padding:"0 6px"} }, "No active alerts right now.")
-                : activeAlerts
-                    .slice(0, 12)
-                    .map(a => {
-                      const room = roomsById.get(a.roomId);
-                      const latest = events.find(e => e.id === a.eventId) || events.find(e => e.roomId === a.roomId);
-                      const label = room ? room.label : `Room ${parseInt(a.roomId,10)}`;
-                      return React.createElement("div", { key:a.id, className:"alertCard" },
-                        React.createElement("div", { className:"alertTop" },
-                          React.createElement("div", null,
-                            React.createElement("div", { className:"alertTitle" }, label),
-                            React.createElement("div", { className:"alertSub" }, latest ? `${latest.summary} at ${prettyTs(latest.ts)}` : `Alert created at ${prettyTs(a.createdAt)}`)
-                          ),
-                          React.createElement("div", { className:"tag crit" }, "ACTIVE")
-                        ),
-                        React.createElement("div", { className:"alertBtns" },
-                          React.createElement("button", {
-                            className:"btnSmall btnAck",
-                            onClick: ()=> ackAlert(a.id)
-                          }, "Acknowledge"),
-                          React.createElement("button", {
-                            className:"btnSmall btnView",
-                            onClick: ()=> setSelectedRoomId(a.roomId)
-                          }, "View room")
-                        )
-                      );
-                    }),
+              React.createElement("h2", null, "Active Alerts"),
+              (() => {
+                const critAlerts = activeAlerts.filter(a => {
+                  const evt = events.find(e => e.id === a.eventId) || events.find(e => e.roomId === a.roomId);
+                  return evt?.type === "FALL_DETECTED";
+                });
+                const warnAlerts = activeAlerts.filter(a => {
+                  const evt = events.find(e => e.id === a.eventId) || events.find(e => e.roomId === a.roomId);
+                  return evt?.type !== "FALL_DETECTED";
+                });
+
+                return React.createElement(React.Fragment, null,
+                  // Tier 1: Falls
+                  critAlerts.length === 0 && warnAlerts.length === 0
+                    ? React.createElement("div", { className:"tiny", style:{padding:"4px 8px"} }, "No active alerts right now.")
+                    : null,
+
+                  critAlerts.length > 0
+                    ? React.createElement(React.Fragment, null,
+                        React.createElement("div", { className:"tierHeader" }, "Fall Detected"),
+                        critAlerts.slice(0, 6).map(a => {
+                          const room = roomsById.get(a.roomId);
+                          const latest = events.find(e => e.id === a.eventId) || events.find(e => e.roomId === a.roomId);
+                          const label = room ? room.label : `Room ${parseInt(a.roomId,10)}`;
+                          return React.createElement("div", { key:a.id, className:"alertCard" },
+                            React.createElement("div", { className:"alertTop" },
+                              React.createElement("div", null,
+                                React.createElement("div", { className:"alertTitle" }, label),
+                                React.createElement("div", { className:"alertSub" }, latest ? `${prettyTs(latest.ts)}` : `${prettyTs(a.createdAt)}`)
+                              ),
+                              React.createElement("div", { className:"tag crit" }, "FALL")
+                            ),
+                            React.createElement("div", { className:"alertBtns" },
+                              React.createElement("button", { className:"btnSmall btnAck", onClick: ()=> ackAlert(a.id) }, "Acknowledge"),
+                              React.createElement("button", { className:"btnSmall btnView", onClick: ()=> setSelectedRoomId(a.roomId) }, "View room")
+                            )
+                          );
+                        })
+                      )
+                    : null,
+
+                  // Tier 2: Warnings
+                  warnAlerts.length > 0
+                    ? React.createElement(React.Fragment, null,
+                        React.createElement("div", { className:"tierHeader", style:{marginTop: critAlerts.length ? 8 : 0} }, "Caution"),
+                        warnAlerts.slice(0, 8).map(a => {
+                          const room = roomsById.get(a.roomId);
+                          const latest = events.find(e => e.id === a.eventId) || events.find(e => e.roomId === a.roomId);
+                          const label = room ? room.label : `Room ${parseInt(a.roomId,10)}`;
+                          return React.createElement("div", { key:a.id, className:"alertCardWarn" },
+                            React.createElement("div", null,
+                              React.createElement("div", { style:{fontWeight:750, fontSize:13} }, label),
+                              React.createElement("div", { className:"tiny" }, latest ? latest.summary : "Warning")
+                            ),
+                            React.createElement("button", { className:"btnSmall btnView", onClick: ()=> setSelectedRoomId(a.roomId) }, "View")
+                          );
+                        })
+                      )
+                    : null
+                );
+              })(),
               React.createElement("div", { className:"foot" },
                 React.createElement("span", null, `Active alerts: ${activeAlerts.length}`),
                 React.createElement("span", null, "Acknowledgements are logged")
@@ -672,9 +744,17 @@
 
             // Timeline
             React.createElement("div", { className:"panel" },
-              React.createElement("h2", null, "Sensor Event Timeline"),
+              React.createElement("div", { style:{display:"flex", justifyContent:"space-between", alignItems:"center", margin:"6px 6px 4px 6px"} },
+                React.createElement("h2", { style:{margin:0} }, "Sensor Event Timeline"),
+                React.createElement("button", {
+                  className: `filterToggle ${timelineFilter === "WARN_PLUS" ? "active" : ""}`,
+                  onClick: () => setTimelineFilter(f => f === "WARN_PLUS" ? "ALL" : "WARN_PLUS")
+                }, timelineFilter === "WARN_PLUS" ? "Alerts only" : "All events")
+              ),
               React.createElement("div", { className:"timeline" },
-                events.slice(0, 60).map(e => (
+                events
+                  .filter(e => timelineFilter === "ALL" || e.severity !== "INFO")
+                  .slice(0, 60).map(e => (
                   React.createElement("div", { className:"eventRow", key:e.id },
                     React.createElement("div", { className:`dot ${severityDotClass(e.severity)}` }),
                     React.createElement("div", { className:"eventMain" },
