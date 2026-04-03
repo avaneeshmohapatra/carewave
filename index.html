@@ -707,6 +707,9 @@
                               ),
                               React.createElement("div", { className:"tag crit" }, "FALL")
                             ),
+                            React.createElement("div", { style:{fontSize:"13px", color:"#7f1d1d", background:"#fff1f2", borderRadius:"8px", padding:"6px 10px"}},
+                                                latest?.summary || "Fall detected — immediate response required"
+                              ),
                             React.createElement("div", { className:"alertBtns" },
                               React.createElement("button", { className:"btnSmall btnAck", onClick: ()=> ackAlert(a.id) }, "Acknowledge"),
                               React.createElement("button", { className:"btnSmall btnView", onClick: ()=> setSelectedRoomId(a.roomId) }, "View room")
