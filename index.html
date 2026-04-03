@@ -409,6 +409,23 @@
     // "Tester" mode. Runs without backend.
     // If you run the Node server, flip USE_BACKEND to true.
     // -----------------------------
+    const FALL_DESCRIPTIONS = [
+      "Patient may have slipped getting out of bed. Possible hip or knee impact.",
+      "Sudden floor impact near bathroom. Check for head injury.",
+      "IMU detected hard fall. Patient unresponsive to motion prompts.",
+      "Patient fell from standing. Assess legs and lower back before moving.",
+      "Fall near bed rail. Check for bruising on the side.",
+    ];
+    
+    const WARN_DESCRIPTIONS = [
+      "WARNING: No movement for 45+ min. Wellness check advised.",
+      "WARNING: Bed pressure unchanged for extended period. Patient may need repositioning.",
+      "WARNING: Door unopened for 3+ hrs. Patient may be unable to move.",
+      "WARNING: Activity flatlined. Patient may be asleep or unresponsive.",
+    ];
+    
+    function randomFrom(arr){ return arr[Math.floor(Math.random() * arr.length)]; }
+    
     const USE_BACKEND = false;
     const API = "http://localhost:3001";
     const WS_URL = "ws://localhost:3001/ws";
@@ -708,7 +725,7 @@
                               React.createElement("div", { className:"tag crit" }, "FALL")
                             ),
                             React.createElement("div", { style:{fontSize:"13px", color:"#7f1d1d", background:"#fff1f2", borderRadius:"8px", padding:"6px 10px"}},
-                                                latest?.summary || "Fall detected — immediate response required"
+                                                randomFrom(FALL_DESCRIPTIONS)
                               ),
                             React.createElement("div", { className:"alertBtns" },
                               React.createElement("button", { className:"btnSmall btnAck", onClick: ()=> ackAlert(a.id) }, "Acknowledge"),
@@ -730,7 +747,7 @@
                           return React.createElement("div", { key:a.id, className:"alertCardWarn" },
                             React.createElement("div", null,
                               React.createElement("div", { style:{fontWeight:750, fontSize:13} }, label),
-                              React.createElement("div", { className:"tiny" }, latest ? latest.summary : "Warning")
+                              React.createElement("div", { className:"tiny" }, randomFrom(WARN_DESCRIPTIONS))
                             ),
                             React.createElement("button", { className:"btnSmall btnView", onClick: ()=> setSelectedRoomId(a.roomId) }, "View")
                           );
