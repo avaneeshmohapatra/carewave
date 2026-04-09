@@ -1,287 +1,904 @@
 <!doctype html>
 <html lang="en">
 <head>
-<meta charset="UTF-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-<title>Fall Detection Dashboard PRO</title>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Fall Detection Dashboard (React)</title>
+  <style>
+    :root{
+      --bg:#c7d2fe;
+      --panel:#f8fafc;
+      --card:#ffffff;
+      --muted:#64748b;
+      --text:#0f172a;
+      --border:#e2e8f0;
 
-<style>
-:root{
-  --bg:#eef2ff;
-  --panel:#ffffff;
-  --text:#0f172a;
-  --muted:#64748b;
-  --primary:#2563eb;
-  --danger:#ef4444;
-  --warning:#f59e0b;
-  --ok:#22c55e;
-}
-.dark{
-  --bg:#0f172a;
-  --panel:#1e293b;
-  --text:#e2e8f0;
-  --muted:#94a3b8;
-}
-body{
-  margin:0;
-  font-family:system-ui;
-  background:var(--bg);
-  color:var(--text);
-}
-.shell{ max-width:1400px; margin:auto; padding:20px; }
-.topbar{
-  display:flex; justify-content:space-between; align-items:center;
-  margin-bottom:15px;
-}
-.btn{
-  background:var(--primary); color:#fff;
-  border:0; padding:8px 12px; border-radius:10px;
-  cursor:pointer;
-}
-.panel{
-  background:var(--panel);
-  border-radius:16px;
-  padding:12px;
-  box-shadow:0 6px 16px rgba(0,0,0,.08);
-}
-.layout{
-  display:grid;
-  grid-template-columns:1.2fr 1fr 1.3fr;
-  gap:12px;
-}
-.badge{ padding:4px 8px; border-radius:999px; font-size:12px; font-weight:700; }
-.crit{ background:#fee2e2; color:#991b1b;}
-.warn{ background:#fef3c7; color:#92400e;}
-.ok{ background:#dcfce7; color:#166534;}
+      --primary:#2563eb;
+      --danger:#ef4444;
+      --warning:#f59e0b;
+      --ok:#22c55e;
 
-.roomRow{
-  display:flex; justify-content:space-between;
-  padding:10px; border-bottom:1px solid #eee;
-  cursor:pointer;
-}
-.roomRow:hover{ background:#f1f5f9; }
+      --shadow: 0 10px 30px rgba(2,6,23,.10);
+      --shadow2: 0 4px 12px rgba(2,6,23,.07);
+      --radius: 16px;
+    }
+    *{ box-sizing:border-box; }
+    body{
+      margin:0;
+      font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, "Apple Color Emoji","Segoe UI Emoji";
+      background: var(--bg);
+      color: var(--text);
+    }
+    .shell{
+      max-width: 1300px;
+      margin: 28px auto;
+      padding: 18px;
+      background: var(--panel);
+      border-radius: 22px;
+      box-shadow: var(--shadow);
+    }
+    .topbar{
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      gap:12px;
+      padding: 4px 6px 18px 6px;
+    }
+    .title{
+      font-size: 28px;
+      font-weight: 750;
+      letter-spacing: -0.02em;
+    }
+    .pill{
+      display:flex;
+      align-items:center;
+      gap:10px;
+      background:#eef2ff;
+      border:1px solid #e0e7ff;
+      padding:10px 12px;
+      border-radius: 999px;
+      color:#1e3a8a;
+      font-weight: 650;
+      font-size: 13px;
+    }
+    .btn{
+      border:0;
+      background: var(--primary);
+      color:#fff;
+      padding: 10px 14px;
+      border-radius: 12px;
+      cursor:pointer;
+      font-weight: 650;
+      box-shadow: 0 8px 18px rgba(37,99,235,.18);
+    }
+    .btn:active{ transform: translateY(1px); }
+    .layout{
+      display:grid;
+      grid-template-columns: 1.25fr .95fr 1.3fr;
+      gap: 16px;
+    }
+    .panel{
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow2);
+      padding: 14px;
+      min-height: 560px;
+    }
+    .panel h2{
+      margin: 6px 6px 12px 6px;
+      font-size: 16px;
+      color:#0b1220;
+      letter-spacing: -0.01em;
+    }
 
-.alert{
-  border-left:4px solid var(--danger);
-  background:#fff;
-  padding:10px;
-  margin:6px 0;
-  border-radius:10px;
-  animation:fadeIn .4s ease;
-}
-@keyframes fadeIn{ from{opacity:0; transform:translateY(5px)} }
+    /* Rooms */
+    .toolbar{
+      display:flex;
+      gap:10px;
+      padding: 0 6px 10px 6px;
+      flex-wrap: wrap;
+    }
+    .input{
+      flex: 1 1 180px;
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 10px 12px;
+      outline: none;
+      background:#fff;
+    }
+    .select{
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 10px 12px;
+      background:#fff;
+      outline:none;
+      color: var(--text);
+    }
+    .roomList{
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      overflow-y: auto;
+      height: 470px;
+      background:#fff;
+    }
+    .roomRow{
+      display:flex;
+      justify-content:space-between;
+      gap: 10px;
+      padding: 12px 12px;
+      border-bottom: 1px solid #f1f5f9;
+      cursor:pointer;
+      align-items:flex-start;
+    }
+    .roomRow:hover{ background:#f8fafc; }
+    .roomLeft{ display:flex; flex-direction:column; gap:6px; }
+    .roomName{ font-weight: 750; font-size: 14px; }
+    .roomMeta{ color: var(--muted); font-size: 12px; display:flex; gap:10px; flex-wrap:wrap; }
+    .tag{
+      font-size: 12px;
+      font-weight: 700;
+      padding: 4px 10px;
+      border-radius: 999px;
+      border: 1px solid var(--border);
+      align-self:flex-start;
+      white-space:nowrap;
+    }
+    .tag.ok{ color:#14532d; background:#ecfdf5; border-color:#bbf7d0; }
+    .tag.warn{ color:#78350f; background:#fffbeb; border-color:#fde68a; }
+    .tag.crit{ color:#7f1d1d; background:#fff1f2; border-color:#fecdd3; }
+    .tag.off{ color:#334155; background:#f1f5f9; border-color:#e2e8f0; }
 
-.timeline{ max-height:500px; overflow:auto; }
+    /* Alerts */
+    .alertPanel{
+      background: #eef6ff;
+      border-color: #fecaca;
+    }
+    .tierHeader{
+      font-size: 11px;
+      font-weight: 800;
+      letter-spacing: 0.07em;
+      text-transform: uppercase;
+      color: var(--muted);
+      padding: 6px 8px 4px 8px;
+      margin-top: 4px;
+    }
+    .alertCard{
+      background:#eff6ff;
+      border:1px solid #bfdbfe;
+      border-left: 4px solid #3b82f6
+      border-radius: 14px;
+      padding: 12px;
+      margin: 6px 6px;
+      display:flex;
+      flex-direction:column;
+      gap: 8px;
+      box-shadow: 0 4px 12px rgba(59,130,246,.12);
+    }
+    .alertCardWarn{
+      background:#fff;
+      border:1px solid #fde68a;
+      border-left: 4px solid var(--warning);
+      border-radius: 12px;
+      padding: 9px 12px;
+      margin: 4px 6px;
+      display:flex;
+      justify-content:space-between;
+      align-items:center;
+      gap: 10px;
+    }
+    .alertTop{ display:flex; justify-content:space-between; gap:10px; align-items:flex-start; }
+    .alertTitle{ font-weight: 800; font-size: 15px; }
+    .alertSub{ color: var(--muted); font-size: 12px; margin-top: 2px; }
+    .alertBtns{ display:flex; gap:10px; flex-wrap:wrap; margin-top: 4px; }
+    .btnSmall{
+      border:0;
+      padding: 8px 12px;
+      border-radius: 12px;
+      cursor:pointer;
+      font-weight: 700;
+      font-size: 12px;
+    }
+    .btnAck{ background: #ff7f50; color:#fff; }
+    .btnCheck{ background: var(--warning); color:#fff; }
+    .btnView{ background: #e2e8f0; color:#0f172a; }
+    .filterToggle{
+      font-size: 11px;
+      font-weight: 700;
+      border: 1px solid var(--border);
+      background: #f8fafc;
+      color: var(--muted);
+      padding: 4px 10px;
+      border-radius: 999px;
+      cursor: pointer;
+    }
+    .filterToggle.active{ background: #eef2ff; border-color: #c7d2fe; color: #1e3a8a; }
 
-.insight{
-  background:#e0e7ff;
-  padding:8px;
-  border-radius:10px;
-  margin:6px 0;
-  font-size:13px;
-}
-</style>
+    /* Timeline */
+    .timeline{
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      overflow-y: auto;
+      height: 520px;
+      background:#fff;
+    }
+    .eventRow{
+      display:flex;
+      gap: 10px;
+      padding: 12px;
+      border-bottom: 1px solid #f1f5f9;
+      align-items:flex-start;
+    }
+    .dot{
+      width: 10px; height: 10px; border-radius: 999px; margin-top: 4px;
+      background: #94a3b8;
+      flex: 0 0 10px;
+    }
+    .dot.info{ background: #3b82f6; }
+    .dot.warn{ background: #f59e0b; }
+    .dot.crit{ background: #ef4444; }
+    .eventMain{ display:flex; flex-direction:column; gap: 4px; }
+    .eventTitle{ font-weight: 750; font-size: 13px; }
+    .eventMeta{ color: var(--muted); font-size: 12px; display:flex; gap: 10px; flex-wrap:wrap; }
+    .sensorChips{ display:flex; gap: 6px; flex-wrap:wrap; margin-top: 4px; }
+    .chip{
+      font-size: 11px;
+      font-weight: 700;
+      padding: 3px 8px;
+      border-radius: 999px;
+      border: 1px solid var(--border);
+      background:#f8fafc;
+      color:#0f172a;
+    }
+
+    /* Drawer */
+    .backdrop{
+      position:fixed; inset:0;
+      background: rgba(2,6,23,.45);
+      display:flex; justify-content:flex-end;
+      padding: 18px;
+    }
+    .drawer{
+      width: min(520px, 95vw);
+      height: calc(100vh - 36px);
+      background:#fff;
+      border-radius: 18px;
+      box-shadow: var(--shadow);
+      padding: 14px;
+      display:flex;
+      flex-direction:column;
+      gap: 12px;
+    }
+    .drawerHeader{
+      display:flex; justify-content:space-between; align-items:flex-start;
+      padding: 4px 4px 0 4px;
+    }
+    .drawerTitle{ font-size: 18px; font-weight: 850; }
+    .xbtn{
+      border: 1px solid var(--border);
+      background:#fff;
+      border-radius: 12px;
+      padding: 8px 10px;
+      cursor:pointer;
+      font-weight: 800;
+    }
+    .section{
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      padding: 12px;
+    }
+    .kvs{ display:grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+    .kv{ background:#f8fafc; border: 1px solid #eef2ff; border-radius: 12px; padding: 10px; }
+    .kv .k{ color: var(--muted); font-size: 11px; font-weight: 800; }
+    .kv .v{ font-weight: 750; margin-top: 4px; }
+    .tiny{ font-size: 12px; color: var(--muted); }
+    .foot{
+      padding: 12px 6px 0 6px;
+      color: var(--muted);
+      font-size: 12px;
+      display:flex;
+      justify-content:space-between;
+      gap:12px;
+      flex-wrap:wrap;
+    }
+    @media (max-width: 1100px){
+      .layout{ grid-template-columns: 1fr; }
+      .panel{ min-height: auto; }
+    }
+  </style>
 </head>
-
 <body>
-<div id="root"></div>
+  <div id="root"></div>
 
-<script type="module">
-import React, {useState, useEffect, useMemo} from "https://esm.sh/react@18";
-import {createRoot} from "https://esm.sh/react-dom@18/client";
+  <!-- React via ESM CDN -->
+  <script type="module">
+    import React, { useEffect, useMemo, useRef, useState } from "https://esm.sh/react@18.3.1";
+    import { createRoot } from "https://esm.sh/react-dom@18.3.1/client";
 
-const now = ()=> new Date();
+    // -----------------------------
+    // Types (mental model)
+    // Room: { id, label, status, lastMovementAt, riskTier, sensors: [{id,type,health,lastSeenAt}] }
+    // Event: { id, ts, roomId, type, severity, summary, sensorsTriggered:[{type,confidence,value}] }
+    // Alert: { id, roomId, eventId, status, createdAt, ackedBy, ackedAt }
+    // -----------------------------
 
-function minutesAgo(min){
-  return new Date(Date.now()-min*60000);
-}
+    const nowIso = () => new Date().toISOString();
 
-function random(arr){ return arr[Math.floor(Math.random()*arr.length)] }
+    const SENSOR_TYPES = ["MOTION","BED_PRESSURE","DOOR","IMU","CAMERA"];
+    const EVENT_TYPES = [
+      { type:"MOTION", severity:"INFO" },
+      { type:"DOOR_OPEN", severity:"INFO" },
+      { type:"INACTIVITY", severity:"WARN" },
+      { type:"SENSOR_OFFLINE", severity:"WARN" },
+      { type:"FALL_DETECTED", severity:"CRIT" },
+    ];
 
-function App(){
+    function minutesAgoIso(mins){
+      return new Date(Date.now() - mins*60*1000).toISOString();
+    }
 
-const [dark,setDark]=useState(false);
-const [rooms,setRooms]=useState([]);
-const [alerts,setAlerts]=useState([]);
-const [events,setEvents]=useState([]);
-const [selected,setSelected]=useState(null);
-const [filterRisk,setFilterRisk]=useState("ALL");
-const [showAlertsOnly,setShowAlertsOnly]=useState(false);
+    function makeRooms(count=120){
+      const rooms = [];
+      for(let i=1;i<=count;i++){
+        const id = String(i).padStart(3,"0");
+        const riskTier = ["Low","Med","High"][Math.floor(Math.random()*3)];
+        const sensors = SENSOR_TYPES.map((t, idx) => ({
+          id: `${id}-${idx}`,
+          type: t,
+          health: Math.random() < 0.95 ? "OK" : "OFFLINE",
+          lastSeenAt: minutesAgoIso(Math.floor(Math.random()*8)+1)
+        }));
+        rooms.push({
+          id,
+          label: `Room ${i}`,
+          status: "NORMAL",
+          lastMovementAt: minutesAgoIso(Math.floor(Math.random()*6)+1),
+          riskTier,
+          sensors
+        });
+      }
+      return rooms;
+    }
 
-const nurse = {name:"Nurse Jamie", shiftStart:minutesAgo(120)};
+    function makeEvent(roomId, forced){
+      const pick = forced || EVENT_TYPES[Math.floor(Math.random()*EVENT_TYPES.length)];
+      const sensorsTriggered = SENSOR_TYPES
+        .filter(() => Math.random() < 0.55)
+        .slice(0, 3)
+        .map(t => ({ type: t, confidence: +(0.55 + Math.random()*0.44).toFixed(2), value: +(Math.random()*1.0).toFixed(2) }));
 
-// SOUND
-function playSound(){
-  const audio = new Audio("https://actions.google.com/sounds/v1/alarms/alarm_clock.ogg");
-  audio.play();
-}
+      const summaryMap = {
+        MOTION: "Motion detected near bed",
+        DOOR_OPEN: "Door opened",
+        INACTIVITY: "Unusual inactivity detected",
+        SENSOR_OFFLINE: "Sensor heartbeat missing",
+        FALL_DETECTED: "Fall detected. Immediate response required"
+      };
+      const summary = summaryMap[pick.type] || pick.type;
 
-// INIT
-useEffect(()=>{
-  const r=[];
-  for(let i=1;i<=80;i++){
-    r.push({
-      id:i,
-      label:"Room "+i,
-      status:"NORMAL",
-      risk:random(["Low","Med","High"]),
-      lastMove:minutesAgo(Math.random()*10)
-    });
-  }
-  setRooms(r);
-},[]);
+      return {
+        id: crypto.randomUUID(),
+        ts: nowIso(),
+        roomId,
+        type: pick.type,
+        severity: pick.severity,
+        summary,
+        sensorsTriggered
+      };
+    }
 
-// SIMULATION
-useEffect(()=>{
-  const t=setInterval(()=>{
-    setRooms(prev=>{
-      const copy=[...prev];
-      const r=random(copy);
+    function severityDotClass(sev){
+      if(sev === "CRIT") return "crit";
+      if(sev === "WARN") return "warn";
+      return "info";
+    }
 
-      const type=random(["NORMAL","WARNING","CRITICAL"]);
+    function statusTagClass(status){
+      if(status === "CRITICAL") return "crit";
+      if(status === "WARNING") return "warn";
+      if(status === "OFFLINE") return "off";
+      return "ok";
+    }
 
-      if(type==="CRITICAL"){
-        playSound();
-        setAlerts(a=>[
-          {id:crypto.randomUUID(), room:r.id, time:now(), note:"Fall detected", assigned:null},
-          ...a
-        ]);
+    function prettyTs(iso){
+      const d = new Date(iso);
+      return d.toLocaleTimeString([], { hour:"2-digit", minute:"2-digit" });
+    }
+
+    // -----------------------------
+    // "Tester" mode. Runs without backend.
+    // If you run the Node server, flip USE_BACKEND to true.
+    // -----------------------------
+    const FALL_DESCRIPTIONS = [
+      "Patient may have slipped getting out of bed. Possible hip or knee impact.",
+      "Sudden floor impact near bathroom. Check for head injury.",
+      "IMU detected hard fall. Patient unresponsive to motion prompts.",
+      "Patient fell from standing. Assess legs and lower back before moving.",
+      "Fall near bed rail. Check for bruising on the side.",
+    ];
+    
+    const WARN_DESCRIPTIONS = [
+      "WARNING: No movement for 45+ min. Wellness check advised.",
+      "WARNING: Bed pressure unchanged for extended period. Patient may need repositioning.",
+      "WARNING: Door unopened for 3+ hrs. Patient may be unable to move.",
+      "WARNING: Activity flatlined. Patient may be asleep or unresponsive.",
+    ];
+    
+    function randomFrom(arr){ return arr[Math.floor(Math.random() * arr.length)]; }
+    
+    const USE_BACKEND = false;
+    const API = "http://localhost:3001";
+    const WS_URL = "ws://localhost:3001/ws";
+
+    function App(){
+      const [rooms, setRooms] = useState(() => {
+        const list = makeRooms(140);
+        // seed a few alerts
+        list[2].status = "CRITICAL";
+        list[5].status = "WARNING";
+        list[17].status = "CRITICAL";
+        return list;
+      });
+
+      const [showHigh, setShowHigh] = useState(true);
+      const [showLow, setShowLow] = useState(true);
+
+      const roomsById = useMemo(() => {
+        const m = new Map();
+        for(const r of rooms) m.set(r.id, r);
+        return m;
+      }, [rooms]);
+
+      const [events, setEvents] = useState(() => {
+        // seed global timeline
+        const seed = [];
+        for(let i=0;i<22;i++){
+          const roomId = String(1 + Math.floor(Math.random()*140)).padStart(3,"0");
+          const e = makeEvent(roomId, i%11===0 ? {type:"FALL_DETECTED",severity:"CRIT"} : undefined);
+          e.ts = minutesAgoIso(60 - i*2);
+          seed.push(e);
+        }
+        return seed.sort((a,b)=> new Date(b.ts) - new Date(a.ts));
+      });
+
+      const [alerts, setAlerts] = useState(() => {
+        const active = [];
+        const critRooms = rooms.filter(r => r.status === "CRITICAL").slice(0, 3);
+        for(const r of critRooms){
+          const evt = makeEvent(r.id, { type:"FALL_DETECTED", severity:"CRIT" });
+          active.push({
+            id: crypto.randomUUID(),
+            roomId: r.id,
+            eventId: evt.id,
+            status: "ACTIVE",
+            createdAt: evt.ts
+          });
+        }
+        const warn = rooms.find(r => r.status === "WARNING");
+        if(warn){
+          const evt = makeEvent(warn.id, { type:"INACTIVITY", severity:"WARN" });
+          active.push({
+            id: crypto.randomUUID(),
+            roomId: warn.id,
+            eventId: evt.id,
+            status: "ACTIVE",
+            createdAt: evt.ts
+          });
+        }
+        return active;
+      });
+
+      const [selectedRoomId, setSelectedRoomId] = useState(null);
+
+      // Filters
+      const [query, setQuery] = useState("");
+      const [statusFilter, setStatusFilter] = useState("ALL");
+      const [timelineFilter, setTimelineFilter] = useState("WARN_PLUS");
+      const STATUS_RANK = { CRITICAL:0, WARNING:1, OFFLINE:2, NORMAL:3 };
+      const filteredRooms = useMemo(() => {
+        const q = query.trim().toLowerCase();
+        return rooms
+          .filter(r => {
+            const matchQ = !q || r.label.toLowerCase().includes(q) || r.id.includes(q);
+            const matchS = statusFilter === "ALL" || r.status === statusFilter;
+            return matchQ && matchS;
+          })
+          .sort((a, b) =>
+            (STATUS_RANK[a.status] ?? 4) - (STATUS_RANK[b.status] ?? 4) ||
+            a.id.localeCompare(b.id)
+          );
+      }, [rooms, query, statusFilter]);
+
+      // Virtual list (simple windowing)
+      const rowH = 74;
+      const listRef = useRef(null);
+      const [scrollTop, setScrollTop] = useState(0);
+      const [viewH, setViewH] = useState(470);
+
+      useEffect(() => {
+        const el = listRef.current;
+        if(!el) return;
+        const onScroll = () => setScrollTop(el.scrollTop);
+        el.addEventListener("scroll", onScroll);
+        const ro = new ResizeObserver(() => setViewH(el.clientHeight));
+        ro.observe(el);
+        return () => { el.removeEventListener("scroll", onScroll); ro.disconnect(); };
+      }, []);
+
+      const totalH = filteredRooms.length * rowH;
+      const start = Math.max(0, Math.floor(scrollTop / rowH) - 4);
+      const end = Math.min(filteredRooms.length, Math.ceil((scrollTop + viewH) / rowH) + 6);
+      const slice = filteredRooms.slice(start, end);
+
+      // Backend wiring (optional)
+      useEffect(() => {
+        if(!USE_BACKEND) return;
+        fetch(`${API}/api/rooms`).then(r=>r.json()).then(({data})=> setRooms(data)).catch(()=>{});
+        const ws = new WebSocket(WS_URL);
+        ws.onmessage = (ev) => {
+          try{
+            const msg = JSON.parse(ev.data);
+            if(msg.type === "room.updated"){
+              setRooms(prev => prev.map(r => r.id === msg.payload.id ? msg.payload : r));
+            }
+            if(msg.type === "event.created"){
+              setEvents(prev => [msg.payload, ...prev].slice(0, 2000));
+            }
+            if(msg.type === "alert.created" || msg.type === "alert.acked"){
+              setAlerts(prev => {
+                const idx = prev.findIndex(a => a.id === msg.payload.id);
+                if(idx >= 0){
+                  const next = prev.slice();
+                  next[idx] = msg.payload;
+                  return next;
+                }
+                return [msg.payload, ...prev];
+              });
+            }
+          } catch {}
+        };
+        return () => ws.close();
+      }, []);
+
+      // Tester simulation (live updates)
+      useEffect(() => {
+        if(USE_BACKEND) return;
+        const t = setInterval(() => {
+          setRooms(prev => {
+            const next = prev.slice();
+            const r = next[Math.floor(Math.random()*next.length)];
+            const forced = Math.random() < 0.08 ? {type:"FALL_DETECTED",severity:"CRIT"} :
+                          Math.random() < 0.18 ? {type:"INACTIVITY",severity:"WARN"} : undefined;
+            const evt = makeEvent(r.id, forced);
+            setEvents(ePrev => [evt, ...ePrev].slice(0, 2000));
+
+            // status logic
+            if(evt.type === "FALL_DETECTED"){
+              r.status = "CRITICAL";
+              setAlerts(aPrev => {
+                const alert = { id: crypto.randomUUID(), roomId: r.id, eventId: evt.id, status:"ACTIVE", createdAt: evt.ts };
+                return [alert, ...aPrev].slice(0, 50);
+              });
+            } else if(evt.type === "INACTIVITY"){
+              if(r.status !== "CRITICAL") r.status = "WARNING";
+            } else if(evt.type === "SENSOR_OFFLINE"){
+              if(r.status !== "CRITICAL") r.status = "OFFLINE";
+            } else if(evt.type === "MOTION"){
+              r.lastMovementAt = evt.ts;
+              if(r.status === "WARNING" && Math.random() < 0.35) r.status = "NORMAL";
+            }
+            return next;
+          });
+        }, 5000);
+        return () => clearInterval(t);
+      }, []);
+
+      const activeAlerts = useMemo(() => alerts.filter(a => a.status === "ACTIVE"), [alerts]);
+
+      const selectedRoom = selectedRoomId ? roomsById.get(selectedRoomId) : null;
+      const roomEvents = useMemo(() => {
+        if(!selectedRoomId) return [];
+        return events.filter(e => e.roomId === selectedRoomId).slice(0, 30);
+      }, [events, selectedRoomId]);
+
+      function ackAlert(alertId){
+        if(USE_BACKEND){
+          fetch(`${API}/api/alerts/${alertId}/ack`, {
+            method:"POST",
+            headers:{ "Content-Type":"application/json" },
+            body: JSON.stringify({ nurseId:"nurse-01", notes:"Acknowledged from dashboard" })
+          }).catch(()=>{});
+          return;
+        }
+
+        setAlerts(prev => prev.map(a => a.id === alertId ? ({...a, status:"ACKED", ackedBy:"nurse-01", ackedAt: nowIso()}) : a));
+        // clear critical room if no other active alerts for that room
+        const a = alerts.find(x => x.id === alertId);
+        if(a){
+          setRooms(prev => prev.map(r => {
+            if(r.id !== a.roomId) return r;
+            const stillActive = alerts.some(x => x.roomId === a.roomId && x.status === "ACTIVE" && x.id !== alertId);
+            if(!stillActive && r.status === "CRITICAL") return { ...r, status:"WARNING" };
+            return r;
+          }));
+        }
       }
 
-      r.status=type;
+      return (
+        React.createElement("div", { className:"shell" },
+          React.createElement("div", { className:"topbar" },
+            React.createElement("div", { className:"title" }, "Fall Detection Dashboard"),
+            React.createElement("div", { style:{display:"flex", gap:10, alignItems:"center"} },
+              React.createElement("div", { className:"pill" },
+                React.createElement("span", null, "Live tester"),
+                React.createElement("span", { style:{color:"#334155", fontWeight:700} }, USE_BACKEND ? "Backend" : "Mock stream")
+              ),
+              React.createElement("button", { className:"btn", onClick: ()=> setSelectedRoomId(null) }, "Nurse Profile")
+            )
+          ),
 
-      setEvents(e=>[
-        {id:crypto.randomUUID(), room:r.id, type, time:now()},
-        ...e.slice(0,100)
-      ]);
+          React.createElement("div", { className:"layout" },
 
-      return copy;
-    });
-  },4000);
-  return ()=>clearInterval(t);
-},[]);
+            // Rooms panel
+            React.createElement("div", { className:"panel" },
+              React.createElement("h2", null, "Patient Room Status"),
+              React.createElement("div", { className:"toolbar" },
+                React.createElement("input", {
+                  className:"input",
+                  placeholder:"Search room (e.g., 12 or Room 12)",
+                  value: query,
+                  onChange: (e)=> setQuery(e.target.value)
+                }),
+                React.createElement("select", {
+                  className:"select",
+                  value: statusFilter,
+                  onChange: (e)=> setStatusFilter(e.target.value)
+                },
+                  React.createElement("option", { value:"ALL" }, "All statuses"),
+                  React.createElement("option", { value:"NORMAL" }, "Normal"),
+                  React.createElement("option", { value:"WARNING" }, "Warning"),
+                  React.createElement("option", { value:"CRITICAL" }, "Critical"),
+                  React.createElement("option", { value:"OFFLINE" }, "Offline")
+                )
+              ),
 
-// COUNTS
-const counts=useMemo(()=>{
-  return {
-    crit: rooms.filter(r=>r.status==="CRITICAL").length,
-    warn: rooms.filter(r=>r.status==="WARNING").length
-  }
-},[rooms]);
+              React.createElement("div", { className:"roomList", ref:listRef },
+                React.createElement("div", { style:{ height: totalH, position:"relative" } },
+                  React.createElement("div", { style:{ position:"absolute", top: start*rowH, left:0, right:0 } },
+                    slice.map((r) => (
+                      React.createElement("div", {
+                        key:r.id,
+                        className:"roomRow",
+                        style:{ height: rowH },
+                        onClick: ()=> setSelectedRoomId(r.id)
+                      },
+                        React.createElement("div", { className:"roomLeft" },
+                          React.createElement("div", { className:"roomName" }, r.label),
+                          React.createElement("div", { className:"roomMeta" },
+                            React.createElement("span", null, `Status: ${r.status}`),
+                            React.createElement("span", null, `Last move: ${prettyTs(r.lastMovementAt)}`),
+                            React.createElement("span", null, `Risk: ${r.riskTier}`)
+                          )
+                        ),
+                        React.createElement("div", { className:`tag ${statusTagClass(r.status)}` }, r.status)
+                      )
+                    ))
+                  )
+                )
+              ),
 
-// FILTER
-const filteredRooms=rooms.filter(r=>{
-  if(filterRisk!=="ALL" && r.risk!==filterRisk) return false;
-  if(showAlertsOnly && !alerts.some(a=>a.room===r.id)) return false;
-  return true;
-});
+              React.createElement("div", { className:"foot" },
+                React.createElement("span", null, `Rooms shown: ${filteredRooms.length}`),
+                React.createElement("span", null, "Tip: click a room to open details")
+              )
+            ),
 
-// AI INSIGHTS
-const insights=useMemo(()=>{
-  return alerts.slice(0,3).map(a=>`Room ${a.room} needs attention (${Math.floor((now()-a.time)/60000)}m ago)`);
-},[alerts]);
+                    // Alerts
+        React.createElement("div", { className:"panel alertPanel" },
+          React.createElement("h2", null, "Active Alerts"),
+        
+          (() => {
+            const highAlerts = activeAlerts.filter(a => {
+              const evt = events.find(e => e.id === a.eventId) || events.find(e => e.roomId === a.roomId);
+              return evt?.severity === "CRIT";
+            });
+        
+            const lowAlerts = activeAlerts.filter(a => {
+              const evt = events.find(e => e.id === a.eventId) || events.find(e => e.roomId === a.roomId);
+              return evt?.severity !== "CRIT";
+            });
+        
+            return React.createElement(React.Fragment, null,
+        
+              // HIGH ALERT DROPDOWN
+              React.createElement("div", {
+                className:"tierHeader",
+                style:{cursor:"pointer"},
+                onClick:()=> setShowHigh(v=>!v)
+              }, `High Alert (${highAlerts.length}) ${showHigh ? "▼" : "▶"}`),
+        
+              showHigh && highAlerts.map(a => {
+                const room = roomsById.get(a.roomId);
+                const latest = events.find(e => e.id === a.eventId) || events.find(e => e.roomId === a.roomId);
+                const label = room ? room.label : `Room ${parseInt(a.roomId,10)}`;
+        
+                return React.createElement("div", { key:a.id, className:"alertCard" },
+                  React.createElement("div", { className:"alertTop" },
+                    React.createElement("div", null,
+                      React.createElement("div", { className:"alertTitle" }, label),
+                      React.createElement("div", { className:"alertSub" }, prettyTs(latest?.ts || a.createdAt))
+                    ),
+                    React.createElement("div", { className:"tag crit" }, "HIGH")
+                  ),
+                  React.createElement("div", null, randomFrom(FALL_DESCRIPTIONS)),
+                  React.createElement("div", { className:"alertBtns" },
+                    React.createElement("button", { className:"btnSmall btnAck", onClick: ()=> ackAlert(a.id) }, "Acknowledge"),
+                    React.createElement("button", { className:"btnSmall btnView", onClick: ()=> setSelectedRoomId(a.roomId) }, "View")
+                  )
+                );
+              }),
+        
+              // LOW ALERT DROPDOWN
+              React.createElement("div", {
+                className:"tierHeader",
+                style:{cursor:"pointer", marginTop:10},
+                onClick:()=> setShowLow(v=>!v)
+              }, `Low Alert (${lowAlerts.length}) ${showLow ? "▼" : "▶"}`),
+        
+              showLow && lowAlerts.map(a => {
+                const room = roomsById.get(a.roomId);
+                const label = room ? room.label : `Room ${parseInt(a.roomId,10)}`;
+        
+                return React.createElement("div", { key:a.id, className:"alertCardWarn" },
+                  React.createElement("div", null,
+                    React.createElement("div", { style:{fontWeight:750} }, label),
+                    React.createElement("div", { className:"tiny" }, randomFrom(WARN_DESCRIPTIONS))
+                  ),
+                  React.createElement("button", {
+                    className:"btnSmall btnView",
+                    onClick: ()=> setSelectedRoomId(a.roomId)
+                  }, "View")
+                );
+              })
+        
+            );
+          })(),
+        
+          React.createElement("div", { className:"foot" },
+            React.createElement("span", null, `Active alerts: ${activeAlerts.length}`),
+            React.createElement("span", null, "Grouped by severity")
+          )
+        ),
 
-function ack(id){
-  setAlerts(a=>a.filter(x=>x.id!==id));
-}
+            // Timeline
+            React.createElement("div", { className:"panel" },
+              React.createElement("div", { style:{display:"flex", justifyContent:"space-between", alignItems:"center", margin:"6px 6px 4px 6px"} },
+                React.createElement("h2", { style:{margin:0} }, "Sensor Event Timeline"),
+                React.createElement("button", {
+                  className: `filterToggle ${timelineFilter === "WARN_PLUS" ? "active" : ""}`,
+                  onClick: () => setTimelineFilter(f => f === "WARN_PLUS" ? "ALL" : "WARN_PLUS")
+                }, timelineFilter === "WARN_PLUS" ? "Alerts only" : "All events")
+              ),
+              React.createElement("div", { className:"timeline" },
+                events
+                  .filter(e => timelineFilter === "ALL" || e.severity !== "INFO")
+                  .slice(0, 60).map(e => (
+                  React.createElement("div", { className:"eventRow", key:e.id },
+                    React.createElement("div", { className:`dot ${severityDotClass(e.severity)}` }),
+                    React.createElement("div", { className:"eventMain" },
+                      React.createElement("div", { className:"eventTitle" }, `${roomsById.get(e.roomId)?.label || ("Room "+parseInt(e.roomId,10))} . ${e.summary}`),
+                      React.createElement("div", { className:"eventMeta" },
+                        React.createElement("span", null, e.type),
+                        React.createElement("span", null, e.severity),
+                        React.createElement("span", null, prettyTs(e.ts))
+                      ),
+                      React.createElement("div", { className:"sensorChips" },
+                        (e.sensorsTriggered || []).slice(0, 4).map((s, idx) =>
+                          React.createElement("span", { key: idx, className:"chip" }, `${s.type} ${Math.round((s.confidence||0)*100)}%`)
+                        )
+                      )
+                    )
+                  )
+                ))
+              ),
+              React.createElement("div", { className:"foot" },
+                React.createElement("span", null, "Newest events at top"),
+                React.createElement("span", null, "Click a room for forensic view")
+              )
+            )
+          ),
 
-return (
-<div className={dark?"dark shell":"shell"}>
+          selectedRoom && React.createElement(Drawer, {
+            room: selectedRoom,
+            roomEvents,
+            onClose: ()=> setSelectedRoomId(null),
+          })
+        )
+      );
+    }
 
-<div className="topbar">
-  <h2>Fall Detection PRO</h2>
-  <div>
-    {nurse.name} • Shift {(Math.floor((now()-nurse.shiftStart)/3600000))}h
-    <button className="btn" onClick={()=>setDark(!dark)}>🌙</button>
-  </div>
-</div>
+    function Drawer({ room, roomEvents, onClose }){
+      return React.createElement("div", { className:"backdrop", onClick:onClose },
+        React.createElement("div", { className:"drawer", onClick:(e)=> e.stopPropagation() },
+          React.createElement("div", { className:"drawerHeader" },
+            React.createElement("div", null,
+              React.createElement("div", { className:"drawerTitle" }, `${room.label}`),
+              React.createElement("div", { className:"tiny" }, `Status: ${room.status} . Risk tier: ${room.riskTier}`)
+            ),
+            React.createElement("button", { className:"xbtn", onClick:onClose }, "Close")
+          ),
 
-<div className="panel" style={{marginBottom:10}}>
-  Critical: {counts.crit} | Warning: {counts.warn}
-</div>
+          React.createElement("div", { className:"section" },
+            React.createElement("div", { style:{display:"flex", justifyContent:"space-between", alignItems:"center", marginBottom:10} },
+              React.createElement("div", { style:{fontWeight:850} }, "Room snapshot"),
+              React.createElement("div", { className:`tag ${statusTagClass(room.status)}` }, room.status)
+            ),
+            React.createElement("div", { className:"kvs" },
+              React.createElement("div", { className:"kv" },
+                React.createElement("div", { className:"k" }, "Last movement"),
+                React.createElement("div", { className:"v" }, prettyTs(room.lastMovementAt))
+              ),
+              React.createElement("div", { className:"kv" },
+                React.createElement("div", { className:"k" }, "Sensors installed"),
+                React.createElement("div", { className:"v" }, room.sensors.length)
+              ),
+              React.createElement("div", { className:"kv" },
+                React.createElement("div", { className:"k" }, "Sensor health"),
+                React.createElement("div", { className:"v" },
+                  room.sensors.some(s => s.health !== "OK") ? "Degraded" : "OK"
+                )
+              ),
+              React.createElement("div", { className:"kv" },
+                React.createElement("div", { className:"k" }, "Room ID"),
+                React.createElement("div", { className:"v" }, room.id)
+              )
+            )
+          ),
 
-<div className="layout">
+          React.createElement("div", { className:"section" },
+            React.createElement("div", { style:{fontWeight:850, marginBottom:10} }, "Sensors (trigger visibility)"),
+            room.sensors.map(s =>
+              React.createElement("div", { key:s.id, className:"eventRow", style:{border:"0", padding:"10px 0"} },
+                React.createElement("div", { className:`dot ${s.health==="OK" ? "info" : "warn"}` }),
+                React.createElement("div", { className:"eventMain" },
+                  React.createElement("div", { className:"eventTitle" }, s.type),
+                  React.createElement("div", { className:"eventMeta" },
+                    React.createElement("span", null, `Health: ${s.health}`),
+                    React.createElement("span", null, `Last seen: ${prettyTs(s.lastSeenAt)}`)
+                  )
+                )
+              )
+            )
+          ),
 
-{/* ROOMS */}
-<div className="panel">
-  <h3>Rooms</h3>
+          React.createElement("div", { className:"section", style:{flex:"1 1 auto", overflow:"auto"} },
+            React.createElement("div", { style:{fontWeight:850, marginBottom:10} }, "Recent events for analysis"),
+            roomEvents.length === 0
+              ? React.createElement("div", { className:"tiny" }, "No recent events loaded for this room.")
+              : roomEvents.map(e =>
+                  React.createElement("div", { key:e.id, className:"eventRow" },
+                    React.createElement("div", { className:`dot ${severityDotClass(e.severity)}` }),
+                    React.createElement("div", { className:"eventMain" },
+                      React.createElement("div", { className:"eventTitle" }, `${e.summary}`),
+                      React.createElement("div", { className:"eventMeta" },
+                        React.createElement("span", null, e.type),
+                        React.createElement("span", null, e.severity),
+                        React.createElement("span", null, prettyTs(e.ts))
+                      ),
+                      React.createElement("div", { className:"sensorChips" },
+                        (e.sensorsTriggered || []).map((s, idx) =>
+                          React.createElement("span", { key: idx, className:"chip" }, `${s.type} ${Math.round((s.confidence||0)*100)}%`)
+                        )
+                      )
+                    )
+                  )
+                )
+          )
+        )
+      );
+    }
 
-  <select onChange={e=>setFilterRisk(e.target.value)}>
-    <option>ALL</option><option>Low</option><option>Med</option><option>High</option>
-  </select>
-
-  <label>
-    <input type="checkbox" onChange={()=>setShowAlertsOnly(v=>!v)}/> Alerts only
-  </label>
-
-  {filteredRooms.map(r=>(
-    <div key={r.id} className="roomRow" onClick={()=>setSelected(r)}>
-      <div>{r.label}</div>
-      <div className={"badge "+(r.status==="CRITICAL"?"crit":r.status==="WARNING"?"warn":"ok")}>
-        {r.status}
-      </div>
-    </div>
-  ))}
-</div>
-
-{/* ALERTS */}
-<div className="panel">
-  <h3>Alerts</h3>
-  {alerts.map(a=>(
-    <div key={a.id} className="alert">
-      <b>Room {a.room}</b><br/>
-      {Math.floor((now()-a.time)/1000)}s ago<br/>
-      <button onClick={()=>ack(a.id)}>Acknowledge</button>
-      <button onClick={()=>setSelected(rooms.find(r=>r.id===a.room))}>View</button>
-    </div>
-  ))}
-</div>
-
-{/* TIMELINE + AI */}
-<div className="panel">
-  <h3>Timeline</h3>
-  <div className="timeline">
-    {events.map(e=>(
-      <div key={e.id}>
-        Room {e.room} — {e.type}
-      </div>
-    ))}
-  </div>
-
-  <h3>AI Insights</h3>
-  {insights.map((i,idx)=>(
-    <div key={idx} className="insight">{i}</div>
-  ))}
-</div>
-
-</div>
-
-{selected && (
-<div style={{
-  position:"fixed", inset:0, background:"rgba(0,0,0,.5)"
-}} onClick={()=>setSelected(null)}>
-
-<div style={{
-  background:"#fff",
-  width:"400px",
-  margin:"100px auto",
-  padding:"20px",
-  borderRadius:"12px"
-}} onClick={e=>e.stopPropagation()}>
-
-<h3>{selected.label}</h3>
-<p>Status: {selected.status}</p>
-<p>Risk: {selected.risk}</p>
-
-</div>
-</div>
-)}
-
-</div>
-);
-}
-
-createRoot(document.getElementById("root")).render(<App/>);
-</script>
+    createRoot(document.getElementById("root")).render(React.createElement(App));
+  </script>
 </body>
 </html>
