@@ -704,9 +704,14 @@
               return evt?.type === "FALL_DETECTED";
             });
             
-            // Step 2: randomly split into high / low
-            const highAlerts = fallAlerts.filter(() => Math.random() > 0.5);
-            const lowAlerts = fallAlerts.filter(() => Math.random() <= 0.5);
+            // Step 2: STABLE grouping (no randomness)
+            const highAlerts = fallAlerts.filter(a => {
+              return parseInt(a.roomId, 10) % 2 === 0;
+            });
+            
+            const lowAlerts = fallAlerts.filter(a => {
+              return parseInt(a.roomId, 10) % 2 !== 0;
+            });
         
             return React.createElement(React.Fragment, null,
         
