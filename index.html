@@ -698,15 +698,15 @@
           React.createElement("h2", null, "Active Alerts"),
         
           (() => {
-            const highAlerts = activeAlerts.filter(a => {
+            // Step 1: only FALL alerts
+            const fallAlerts = activeAlerts.filter(a => {
               const evt = events.find(e => e.id === a.eventId) || events.find(e => e.roomId === a.roomId);
-              return evt?.severity === "CRIT";
+              return evt?.type === "FALL_DETECTED";
             });
-        
-            const lowAlerts = activeAlerts.filter(a => {
-              const evt = events.find(e => e.id === a.eventId) || events.find(e => e.roomId === a.roomId);
-              return evt?.severity !== "CRIT";
-            });
+            
+            // Step 2: randomly split into high / low
+            const highAlerts = fallAlerts.filter(() => Math.random() > 0.5);
+            const lowAlerts = fallAlerts.filter(() => Math.random() <= 0.5);
         
             return React.createElement(React.Fragment, null,
         
