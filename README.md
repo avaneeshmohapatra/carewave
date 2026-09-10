@@ -75,6 +75,7 @@ Reload `index.html` in your browser.
 ---
 
 ## API Reference
+Sensor APIs not revealed, examples of what it would look like below.
 
 ### REST Endpoints
 
