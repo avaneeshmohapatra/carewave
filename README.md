@@ -2,6 +2,30 @@
 
 A real-time, high-density patient monitoring system designed for hospital wards and care facilities. This project provides real-time room tracking, emergency fall alerts, multi-sensor event timelines, and granular room diagnostics.
 
+## Why these alerts
+
+Early versions of this dashboard surfaced every anomaly the sensors could
+detect. When we brought it to nursing staff, the response was that they
+didn't want another device alerting them to something false — an existing
+system already fired constantly, so they had stopped trusting it.
+
+That reframed the problem. The constraint wasn't detection accuracy, it was
+the cost of interrupting a nurse who was already busy. Every alert we kept
+had to be worth pulling someone away from a resident.
+
+We cut the requested feature list from seven to four and split sensor events
+into two tiers:
+
+**Surfaced to staff** — `FALL_DETECTED` and sustained `CRITICAL` room states.
+Events where a delayed response has real consequences.
+
+**Logged silently** — routine `MOTION`, `DOOR`, and `BED_PRESSURE` telemetry.
+Available in the room diagnostics drawer when someone is investigating, but
+never pushed as an alert.
+
+The confidence scores and event timeline exist to support the second case:
+when staff do go looking, they need the history, not another notification.
+
 ---
 
 ## Features
